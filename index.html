@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TaskFlow</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f1;
+  --white:#ffffff;
+  --surface:#faf9f7;
+  --border:#e4e2dc;
+  --border2:#ccc9c0;
+  --text:#1a1915;
+  --muted:#7a786f;
+  --hint:#b0ae a6;
+  --accent:#2a6ff5;
+  --accent-bg:#eef3fe;
+  --accent-text:#1a4db8;
+  --green:#1a7a4a;
+  --green-bg:#e8f7ef;
+  --red:#c0392b;
+  --red-bg:#fdecea;
+  --amber:#a06000;
+  --amber-bg:#fef3dc;
+  --radius:10px;
+  --radius-sm:7px;
+  --font:'Plus Jakarta Sans',sans-serif;
+  --shadow:0 1px 3px rgba(0,0,0,0.07),0 4px 12px rgba(0,0,0,0.05);
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;min-height:100vh}
+ 
+/* ── AUTH SCREEN ── */
+#authScreen{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:1.5rem;
+}
+.auth-box{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:2.5rem 2rem;
+  width:100%;
+  max-width:420px;
+  box-shadow:var(--shadow);
+}
+.auth-logo{
+  font-size:1.4rem;
+  font-weight:700;
+  letter-spacing:-0.03em;
+  margin-bottom:0.3rem;
+  color:var(--text);
+}
+.auth-logo span{color:var(--accent)}
+.auth-sub{font-size:0.85rem;color:var(--muted);margin-bottom:2rem}
+.tabs{display:flex;gap:4px;background:var(--bg);border-radius:var(--radius-sm);padding:4px;margin-bottom:1.75rem}
+.tab{flex:1;text-align:center;padding:7px;font-size:0.85rem;font-weight:500;border-radius:6px;cursor:pointer;color:var(--muted);transition:all .2s;border:none;background:none;font-family:var(--font)}
+.tab.active{background:var(--white);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:0.78rem;font-weight:600;color:var(--muted);margin-bottom:5px;letter-spacing:0.03em;text-transform:uppercase}
+.field input{width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font);font-size:0.92rem;color:var(--text);background:var(--white);outline:none;transition:border .2s,box-shadow .2s}
+.field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(42,111,245,0.1)}
+.field input.err{border-color:var(--red)}
+.field input.ok{border-color:var(--green)}
+.err-msg{font-size:0.75rem;color:var(--red);margin-top:4px;min-height:1em}
+.btn-primary{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font);font-size:0.95rem;font-weight:600;cursor:pointer;transition:opacity .2s,transform .15s;margin-top:0.5rem}
+.btn-primary:hover{opacity:.9}
+.btn-primary:active{transform:scale(.98)}
+ 
+/* ── APP SHELL ── */
+#appScreen{display:none}
+.shell{display:grid;grid-template-columns:230px 1fr;grid-template-rows:auto 1fr;min-height:100vh}
+ 
+/* sidebar */
+.sidebar{
+  grid-row:1/3;
+  background:var(--white);
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  padding:1.25rem 0;
+}
+.sb-logo{padding:0 1.25rem 1.25rem;font-size:1.1rem;font-weight:700;letter-spacing:-0.02em;border-bottom:1px solid var(--border);margin-bottom:1rem}
+.sb-logo span{color:var(--accent)}
+.sb-section{font-size:0.68rem;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;padding:0 1.25rem;margin:0.75rem 0 0.4rem}
+.sb-link{display:flex;align-items:center;gap:9px;padding:7px 1.25rem;font-size:0.88rem;color:var(--muted);cursor:pointer;border-radius:0;transition:color .15s,background .15s;border:none;background:none;font-family:var(--font);width:100%;text-align:left}
+.sb-link:hover{color:var(--text);background:var(--bg)}
+.sb-link.active{color:var(--accent);background:var(--accent-bg);font-weight:500}
+.sb-link i{font-size:16px}
+.sb-badge{margin-left:auto;background:var(--accent-bg);color:var(--accent-text);font-size:0.68rem;font-weight:700;padding:1px 7px;border-radius:20px}
+.sb-user{margin-top:auto;padding:1rem 1.25rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:9px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--accent-bg);color:var(--accent-text);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0}
+.sb-user-info{flex:1;min-width:0}
+.sb-user-name{font-size:.83rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-user-role{font-size:.72rem;color:var(--muted)}
+.btn-logout{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;border-radius:4px;font-size:15px}
+.btn-logout:hover{color:var(--red)}
+ 
+/* topbar */
+.topbar{
+  background:var(--white);
+  border-bottom:1px solid var(--border);
+  padding:.85rem 1.75rem;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.topbar-title{font-weight:600;font-size:1rem;flex:1}
+.search-box{display:flex;align-items:center;gap:7px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 12px;max-width:220px}
+.search-box i{color:var(--muted);font-size:15px}
+.search-box input{border:none;background:none;outline:none;font-family:var(--font);font-size:.85rem;color:var(--text);width:140px}
+.btn-new{display:flex;align-items:center;gap:6px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);padding:7px 14px;font-family:var(--font);font-size:.83rem;font-weight:600;cursor:pointer;transition:opacity .2s}
+.btn-new:hover{opacity:.88}
+ 
+/* main content */
+.main{padding:1.75rem;overflow-y:auto;background:var(--bg)}
+ 
+/* view panels */
+.view{display:none}
+.view.active{display:block}
+ 
+/* stats row */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:1.75rem}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem}
+.stat-label{font-size:.75rem;color:var(--muted);font-weight:500;margin-bottom:.35rem}
+.stat-val{font-size:1.6rem;font-weight:700;letter-spacing:-.03em;line-height:1}
+.stat-sub{font-size:.72rem;color:var(--muted);margin-top:.3rem}
+ 
+/* filters */
+.filter-row{display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap;align-items:center}
+.filter-btn{padding:5px 13px;border-radius:20px;border:1px solid var(--border);background:var(--white);color:var(--muted);font-family:var(--font);font-size:.8rem;font-weight:500;cursor:pointer;transition:all .15s}
+.filter-btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.filter-btn:hover:not(.on){border-color:var(--border2);color:var(--text)}
+ 
+/* task table */
+.task-table{width:100%;border-collapse:collapse;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.task-table th{text-align:left;font-size:.73rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:.75rem 1rem;border-bottom:1px solid var(--border);background:var(--surface)}
+.task-table td{padding:.85rem 1rem;border-bottom:1px solid var(--border);font-size:.88rem;vertical-align:middle}
+.task-table tr:last-child td{border-bottom:none}
+.task-table tr:hover td{background:var(--bg)}
+.task-check{width:17px;height:17px;border:1.5px solid var(--border2);border-radius:4px;cursor:pointer;position:relative;flex-shrink:0;transition:all .2s;display:inline-block}
+.task-check.done{background:var(--green);border-color:var(--green)}
+.task-check.done::after{content:'';position:absolute;top:2px;left:5px;width:5px;height:8px;border:1.5px solid #fff;border-left:none;border-top:none;transform:rotate(45deg)}
+.task-name{font-weight:500;cursor:pointer}
+.task-name.done{text-decoration:line-through;color:var(--muted);font-weight:400}
+.task-cat{font-size:.72rem;font-weight:600;padding:2px 9px;border-radius:20px}
+.cat-work{background:#eef3fe;color:#1a4db8}
+.cat-personal{background:#e8f7ef;color:#1a7a4a}
+.cat-urgent{background:#fdecea;color:#c0392b}
+.cat-idea{background:#fef3dc;color:#a06000}
+.priority-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px}
+.p-high{background:#c0392b}.p-mid{background:#a06000}.p-low{background:#1a7a4a}
+.due-date{font-size:.8rem;color:var(--muted)}
+.due-date.overdue{color:var(--red);font-weight:500}
+.btn-icon{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px 6px;border-radius:5px;font-size:15px;transition:all .15s}
+.btn-icon:hover{color:var(--red);background:var(--red-bg)}
+.empty-row td{text-align:center;color:var(--muted);padding:2.5rem;font-size:.88rem}
+ 
+/* modal overlay */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:var(--white);border-radius:14px;padding:1.75rem;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.modal-title{font-size:1rem;font-weight:700}
+.btn-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1;padding:2px}
+.btn-close:hover{color:var(--text)}
+.modal .field input,.modal .field select,.modal .field textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font);font-size:.9rem;color:var(--text);background:var(--white);outline:none;transition:border .2s,box-shadow .2s}
+.modal .field input:focus,.modal .field select:focus,.modal .field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(42,111,245,0.1)}
+.modal .field textarea{resize:vertical;min-height:80px}
+.modal-row{display:flex;gap:12px}
+.modal-row .field{flex:1}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:1.5rem}
+.btn-ghost{padding:8px 18px;border:1px solid var(--border);border-radius:var(--radius-sm);background:none;font-family:var(--font);font-size:.88rem;cursor:pointer;color:var(--muted);transition:all .15s}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text)}
+.btn-save{padding:8px 20px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font);font-size:.88rem;font-weight:600;cursor:pointer;transition:opacity .2s}
+.btn-save:hover{opacity:.88}
+ 
+/* gallery view */
+.gallery-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap}
+.gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+.gal-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:box-shadow .2s}
+.gal-card:hover{box-shadow:var(--shadow)}
+.gal-img{aspect-ratio:4/3;object-fit:cover;width:100%;display:block}
+.gal-img-placeholder{aspect-ratio:4/3;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:2rem}
+.gal-info{padding:.7rem .85rem}
+.gal-name{font-size:.83rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gal-meta{font-size:.72rem;color:var(--muted);margin-top:2px;display:flex;align-items:center;justify-content:space-between}
+ 
+/* profile view */
+.profile-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;max-width:520px}
+.profile-avatar{width:72px;height:72px;border-radius:50%;background:var(--accent-bg);color:var(--accent-text);display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;margin-bottom:1.25rem}
+.profile-name{font-size:1.2rem;font-weight:700;margin-bottom:.2rem}
+.profile-email{font-size:.85rem;color:var(--muted);margin-bottom:1.5rem}
+.profile-stat-row{display:flex;gap:2rem;padding-top:1rem;border-top:1px solid var(--border)}
+.ps{text-align:center}
+.ps-val{font-size:1.4rem;font-weight:700}
+.ps-lbl{font-size:.72rem;color:var(--muted);margin-top:2px}
+ 
+/* responsive */
+@media(max-width:700px){
+  .shell{grid-template-columns:1fr;grid-template-rows:auto auto 1fr}
+  .sidebar{grid-row:auto;flex-direction:row;flex-wrap:wrap;padding:.75rem;gap:4px;border-right:none;border-bottom:1px solid var(--border)}
+  .sb-logo,.sb-section,.sb-user,.sb-user-info,.sb-user-role,.sb-badge{display:none}
+  .sb-link{padding:6px 10px;border-radius:var(--radius-sm);font-size:.8rem}
+  .task-table th:nth-child(4),.task-table td:nth-child(4),
+  .task-table th:nth-child(5),.task-table td:nth-child(5){display:none}
+}
+</style>
+</head>
+<body>
+ 
+<!-- ══ AUTH SCREEN ══ -->
+<div id="authScreen">
+  <div class="auth-box">
+    <div class="auth-logo">Task<span>Flow</span></div>
+    <div class="auth-sub">Manage your work, beautifully.</div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('login')">Sign in</button>
+      <button class="tab" onclick="switchTab('signup')">Create account</button>
+    </div>
+ 
+    <!-- LOGIN -->
+    <div id="loginForm">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="l-email" placeholder="you@example.com"/>
+        <div class="err-msg" id="l-email-err"></div>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="l-pass" placeholder="••••••••"/>
+        <div class="err-msg" id="l-pass-err"></div>
+      </div>
+      <button class="btn-primary" onclick="doLogin()">Sign in</button>
+    </div>
+ 
+    <!-- SIGNUP -->
+    <div id="signupForm" style="display:none">
+      <div style="display:flex;gap:10px">
+        <div class="field" style="flex:1">
+          <label>First name</label>
+          <input type="text" id="s-first" placeholder="Ada"/>
+          <div class="err-msg" id="s-first-err"></div>
+        </div>
+        <div class="field" style="flex:1">
+          <label>Last name</label>
+          <input type="text" id="s-last" placeholder="Lovelace"/>
+          <div class="err-msg" id="s-last-err"></div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="s-email" placeholder="you@example.com"/>
+        <div class="err-msg" id="s-email-err"></div>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="s-pass" placeholder="Min 8 characters"/>
+        <div class="err-msg" id="s-pass-err"></div>
+      </div>
+      <div class="field">
+        <label>Confirm password</label>
+        <input type="password" id="s-pass2" placeholder="Repeat password"/>
+        <div class="err-msg" id="s-pass2-err"></div>
+      </div>
+      <button class="btn-primary" onclick="doSignup()">Create account</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- ══ APP SCREEN ══ -->
+<div id="appScreen">
+  <div class="shell">
+ 
+    <!-- SIDEBAR (Flexbox column) -->
+    <aside class="sidebar">
+      <div class="sb-logo">Task<span>Flow</span></div>
+      <div class="sb-section">Workspace</div>
+      <button class="sb-link active" onclick="showView('dashboard',this)"><i class="ti ti-layout-dashboard"></i> Dashboard</button>
+      <button class="sb-link" onclick="showView('tasks',this)"><i class="ti ti-check"></i> My Tasks <span class="sb-badge" id="sbBadge">0</span></button>
+      <button class="sb-link" onclick="showView('gallery',this)"><i class="ti ti-photo"></i> Gallery</button>
+      <div class="sb-section">Account</div>
+      <button class="sb-link" onclick="showView('profile',this)"><i class="ti ti-user"></i> Profile</button>
+      <div class="sb-user">
+        <div class="avatar" id="sbAvatar">--</div>
+        <div class="sb-user-info">
+          <div class="sb-user-name" id="sbName">--</div>
+          <div class="sb-user-role">Member</div>
+        </div>
+        <button class="btn-logout" onclick="doLogout()" title="Sign out"><i class="ti ti-logout"></i></button>
+      </div>
+    </aside>
+ 
+    <!-- TOP BAR (Flexbox row) -->
+    <header class="topbar">
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="search-box">
+        <i class="ti ti-search"></i>
+        <input type="text" placeholder="Search tasks…" id="searchInput" oninput="filterTasks()"/>
+      </div>
+      <button class="btn-new" onclick="openModal()"><i class="ti ti-plus" style="font-size:15px"></i> New Task</button>
+    </header>
+ 
+    <!-- MAIN -->
+    <main class="main">
+ 
+      <!-- DASHBOARD VIEW -->
+      <div class="view active" id="view-dashboard">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Total tasks</div>
+            <div class="stat-val" id="st-total">0</div>
+            <div class="stat-sub">in your workspace</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Completed</div>
+            <div class="stat-val" style="color:var(--green)" id="st-done">0</div>
+            <div class="stat-sub" id="st-pct">0% done</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Remaining</div>
+            <div class="stat-val" style="color:var(--accent)" id="st-left">0</div>
+            <div class="stat-sub">to finish</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Overdue</div>
+            <div class="stat-val" style="color:var(--red)" id="st-over">0</div>
+            <div class="stat-sub">past due date</div>
+          </div>
+        </div>
+        <div style="font-size:.88rem;font-weight:600;margin-bottom:.85rem;color:var(--muted)">Recent tasks</div>
+        <table class="task-table" id="dashTable">
+          <thead><tr>
+            <th style="width:30px"></th>
+            <th>Task</th>
+            <th>Category</th>
+            <th>Priority</th>
+            <th>Due</th>
+            <th style="width:40px"></th>
+          </tr></thead>
+          <tbody id="dashBody"></tbody>
+        </table>
+      </div>
+ 
+      <!-- TASKS VIEW -->
+      <div class="view" id="view-tasks">
+        <div class="filter-row">
+          <button class="filter-btn on" onclick="setFilter('all',this)">All</button>
+          <button class="filter-btn" onclick="setFilter('active',this)">Active</button>
+          <button class="filter-btn" onclick="setFilter('done',this)">Done</button>
+          <button class="filter-btn" onclick="setFilter('urgent',this)">Urgent</button>
+          <button class="filter-btn" onclick="setFilter('work',this)">Work</button>
+          <button class="filter-btn" onclick="setFilter('personal',this)">Personal</button>
+        </div>
+        <table class="task-table" id="mainTable">
+          <thead><tr>
+            <th style="width:30px"></th>
+            <th>Task</th>
+            <th>Category</th>
+            <th>Priority</th>
+            <th>Due</th>
+            <th style="width:40px"></th>
+          </tr></thead>
+          <tbody id="mainBody"></tbody>
+        </table>
+      </div>
+ 
+      <!-- GALLERY VIEW -->
+      <div class="view" id="view-gallery">
+        <div class="gallery-toolbar">
+          <input type="text" id="galUrlInput" placeholder="Paste image URL and press Enter…"
+            style="flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font);font-size:.88rem;outline:none"
+            onkeydown="if(event.key==='Enter')addGalleryImage()"/>
+          <button class="btn-new" onclick="addGalleryImage()"><i class="ti ti-plus" style="font-size:15px"></i> Add</button>
+          <button class="btn-ghost" onclick="loadSampleImages()"><i class="ti ti-photo"></i> Load samples</button>
+        </div>
+        <div class="gallery-grid" id="galleryGrid"></div>
+        <div id="galEmpty" style="text-align:center;padding:3rem;color:var(--muted);font-size:.88rem">No images yet. Paste a URL above or load samples.</div>
+      </div>
+ 
+      <!-- PROFILE VIEW -->
+      <div class="view" id="view-profile">
+        <div class="profile-card">
+          <div class="profile-avatar" id="profAvatar">--</div>
+          <div class="profile-name" id="profName">--</div>
+          <div class="profile-email" id="profEmail">--</div>
+          <div style="margin-bottom:1.5rem">
+            <div class="field"><label>Full name</label><input type="text" id="profNameInput"/></div>
+            <div class="field"><label>Email</label><input type="email" id="profEmailInput"/></div>
+            <button class="btn-primary" style="width:auto;padding:9px 24px" onclick="saveProfile()">Save changes</button>
+          </div>
+          <div class="profile-stat-row">
+            <div class="ps"><div class="ps-val" id="prof-total">0</div><div class="ps-lbl">Total</div></div>
+            <div class="ps"><div class="ps-val" style="color:var(--green)" id="prof-done">0</div><div class="ps-lbl">Done</div></div>
+            <div class="ps"><div class="ps-val" style="color:var(--accent)" id="prof-left">0</div><div class="ps-lbl">Active</div></div>
+          </div>
+        </div>
+      </div>
+ 
+    </main>
+  </div>
+</div>
+ 
+<!-- ══ TASK MODAL ══ -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">New task</div>
+      <button class="btn-close" onclick="closeModal()">&#x2715;</button>
+    </div>
+    <div class="field">
+      <label>Task name *</label>
+      <input type="text" id="m-name" placeholder="What needs to be done?"/>
+      <div class="err-msg" id="m-name-err"></div>
+    </div>
+    <div class="field">
+      <label>Description</label>
+      <textarea id="m-desc" placeholder="Add details…"></textarea>
+    </div>
+    <div class="modal-row">
+      <div class="field">
+        <label>Category</label>
+        <select id="m-cat">
+          <option value="work">Work</option>
+          <option value="personal">Personal</option>
+          <option value="urgent">Urgent</option>
+          <option value="idea">Idea</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Priority</label>
+        <select id="m-pri">
+          <option value="high">High</option>
+          <option value="mid" selected>Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Due date</label>
+      <input type="date" id="m-due"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveTask()">Save task</button>
+    </div>
+  </div>
+</div>
+ 
+<script>
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+let user = null;
+let tasks = [];
+let images = [];
+let imgId = 1;
+let editId = null;
+let activeFilter = 'all';
+let searchQ = '';
+ 
+// ── AUTH ──
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',i===(t==='login'?0:1)));
+  document.getElementById('loginForm').style.display = t==='login'?'':'none';
+  document.getElementById('signupForm').style.display = t==='signup'?'':'none';
+}
+ 
+function setErr(id,msg){
+  const el=document.getElementById(id);
+  const inp=document.getElementById(id.replace('-err',''));
+  el.textContent=msg;
+  if(inp){inp.classList.toggle('err',!!msg);inp.classList.toggle('ok',!msg&&inp.value.trim())}
+}
+ 
+function doLogin(){
+  const e=document.getElementById('l-email').value.trim();
+  const p=document.getElementById('l-pass').value;
+  let ok=true;
+  if(!EMAIL_RE.test(e)){setErr('l-email-err','Enter a valid email address');ok=false}else setErr('l-email-err','');
+  if(p.length<1){setErr('l-pass-err','Password is required');ok=false}else setErr('l-pass-err','');
+  if(!ok)return;
+  const saved=JSON.parse(localStorage.getItem('tf-user')||'null');
+  if(saved&&saved.email===e&&saved.password===p){enterApp(saved)}
+  else if(!saved){alert('No account found. Please sign up first.')}
+  else{setErr('l-pass-err','Incorrect email or password')}
+}
+ 
+function doSignup(){
+  const f=document.getElementById('s-first').value.trim();
+  const l=document.getElementById('s-last').value.trim();
+  const e=document.getElementById('s-email').value.trim();
+  const p=document.getElementById('s-pass').value;
+  const p2=document.getElementById('s-pass2').value;
+  let ok=true;
+  if(f.length<2){setErr('s-first-err','Enter your first name');ok=false}else setErr('s-first-err','');
+  if(l.length<2){setErr('s-last-err','Enter your last name');ok=false}else setErr('s-last-err','');
+  if(!EMAIL_RE.test(e)){setErr('s-email-err','Enter a valid email');ok=false}else setErr('s-email-err','');
+  if(p.length<8){setErr('s-pass-err','Minimum 8 characters');ok=false}else setErr('s-pass-err','');
+  if(p!==p2){setErr('s-pass2-err','Passwords do not match');ok=false}else setErr('s-pass2-err','');
+  if(!ok)return;
+  const u={name:f+' '+l,email:e,password:p,initials:(f[0]+l[0]).toUpperCase()};
+  localStorage.setItem('tf-user',JSON.stringify(u));
+  enterApp(u);
+}
+ 
+function enterApp(u){
+  user=u;
+  tasks=JSON.parse(localStorage.getItem('tf-tasks')||'[]');
+  images=JSON.parse(localStorage.getItem('tf-images')||'[]');
+  imgId=images.length?Math.max(...images.map(i=>i.id))+1:1;
+  document.getElementById('authScreen').style.display='none';
+  document.getElementById('appScreen').style.display='block';
+  document.getElementById('sbAvatar').textContent=u.initials;
+  document.getElementById('sbName').textContent=u.name;
+  document.getElementById('profAvatar').textContent=u.initials;
+  document.getElementById('profName').textContent=u.name;
+  document.getElementById('profEmail').textContent=u.email;
+  document.getElementById('profNameInput').value=u.name;
+  document.getElementById('profEmailInput').value=u.email;
+  render();
+}
+ 
+function doLogout(){
+  user=null;tasks=[];images=[];
+  document.getElementById('appScreen').style.display='none';
+  document.getElementById('authScreen').style.display='flex';
+  document.getElementById('l-email').value='';
+  document.getElementById('l-pass').value='';
+}
+ 
+// ── NAVIGATION ──
+function showView(id,btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  document.querySelectorAll('.sb-link').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  const titles={dashboard:'Dashboard',tasks:'My Tasks',gallery:'Gallery',profile:'Profile'};
+  document.getElementById('topbarTitle').textContent=titles[id]||id;
+  render();
+}
+ 
+// ── TASKS CRUD ──
+function openModal(id){
+  editId=id||null;
+  const t=id?tasks.find(x=>x.id===id):null;
+  document.getElementById('modalTitle').textContent=id?'Edit task':'New task';
+  document.getElementById('m-name').value=t?t.name:'';
+  document.getElementById('m-desc').value=t?t.desc:'';
+  document.getElementById('m-cat').value=t?t.cat:'work';
+  document.getElementById('m-pri').value=t?t.pri:'mid';
+  document.getElementById('m-due').value=t?t.due:'';
+  document.getElementById('m-name-err').textContent='';
+  document.getElementById('m-name').classList.remove('err');
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open')}
+ 
+function saveTask(){
+  const name=document.getElementById('m-name').value.trim();
+  if(!name){
+    document.getElementById('m-name-err').textContent='Task name is required';
+    document.getElementById('m-name').classList.add('err');
+    return;
+  }
+  const task={
+    id:editId||Date.now(),
+    name,
+    desc:document.getElementById('m-desc').value.trim(),
+    cat:document.getElementById('m-cat').value,
+    pri:document.getElementById('m-pri').value,
+    due:document.getElementById('m-due').value,
+    done:editId?(tasks.find(x=>x.id===editId)||{}).done||false:false
+  };
+  if(editId){const i=tasks.findIndex(x=>x.id===editId);if(i>-1)tasks[i]=task}
+  else tasks.unshift(task);
+  saveTasks();
+  closeModal();
+  render();
+}
+ 
+function toggleDone(id){
+  const t=tasks.find(x=>x.id===id);
+  if(t)t.done=!t.done;
+  saveTasks();render();
+}
+ 
+function deleteTask(id){
+  tasks=tasks.filter(x=>x.id!==id);
+  saveTasks();render();
+}
+ 
+function saveTasks(){localStorage.setItem('tf-tasks',JSON.stringify(tasks))}
+ 
+// ── FILTERS & SEARCH ──
+function setFilter(f,btn){
+  activeFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  render();
+}
+ 
+function filterTasks(){searchQ=document.getElementById('searchInput').value.toLowerCase();render()}
+ 
+function getFiltered(){
+  return tasks.filter(t=>{
+    const matchQ=!searchQ||t.name.toLowerCase().includes(searchQ)||t.cat.includes(searchQ);
+    if(!matchQ)return false;
+    if(activeFilter==='all')return true;
+    if(activeFilter==='active')return!t.done;
+    if(activeFilter==='done')return t.done;
+    if(activeFilter==='urgent')return t.cat==='urgent';
+    if(activeFilter==='work')return t.cat==='work';
+    if(activeFilter==='personal')return t.cat==='personal';
+    return true;
+  });
+}
+ 
+// ── RENDER ──
+function render(){
+  const today=new Date().toISOString().slice(0,10);
+  const done=tasks.filter(t=>t.done).length;
+  const left=tasks.length-done;
+  const over=tasks.filter(t=>!t.done&&t.due&&t.due<today).length;
+  const pct=tasks.length?Math.round(done/tasks.length*100):0;
+ 
+  document.getElementById('st-total').textContent=tasks.length;
+  document.getElementById('st-done').textContent=done;
+  document.getElementById('st-left').textContent=left;
+  document.getElementById('st-over').textContent=over;
+  document.getElementById('st-pct').textContent=pct+'% done';
+  document.getElementById('sbBadge').textContent=left;
+  document.getElementById('prof-total').textContent=tasks.length;
+  document.getElementById('prof-done').textContent=done;
+  document.getElementById('prof-left').textContent=left;
+ 
+  renderTaskTable('dashBody',tasks.slice(0,6));
+  renderTaskTable('mainBody',getFiltered());
+  renderGallery();
+}
+ 
+function catClass(c){return{work:'cat-work',personal:'cat-personal',urgent:'cat-urgent',idea:'cat-idea'}[c]||'cat-work'}
+function catLabel(c){return{work:'Work',personal:'Personal',urgent:'Urgent',idea:'Idea'}[c]||c}
+function priClass(p){return{high:'p-high',mid:'p-mid',low:'p-low'}[p]||'p-mid'}
+function priLabel(p){return{high:'High',mid:'Medium',low:'Low'}[p]||p}
+ 
+function renderTaskTable(bodyId,list){
+  const today=new Date().toISOString().slice(0,10);
+  const body=document.getElementById(bodyId);
+  if(!list.length){body.innerHTML='<tr class="empty-row"><td colspan="6">No tasks found</td></tr>';return}
+  body.innerHTML=list.map(t=>`
+    <tr>
+      <td><span class="task-check${t.done?' done':''}" onclick="toggleDone(${t.id})"></span></td>
+      <td>
+        <div class="task-name${t.done?' done':''}" onclick="openModal(${t.id})">${esc(t.name)}</div>
+        ${t.desc?`<div style="font-size:.75rem;color:var(--muted);margin-top:2px">${esc(t.desc.slice(0,60))}${t.desc.length>60?'…':''}</div>`:''}
+      </td>
+      <td><span class="task-cat ${catClass(t.cat)}">${catLabel(t.cat)}</span></td>
+      <td><span class="priority-dot ${priClass(t.pri)}"></span>${priLabel(t.pri)}</td>
+      <td><span class="due-date${t.due&&t.due<today&&!t.done?' overdue':''}">${t.due||'—'}</span></td>
+      <td><button class="btn-icon" onclick="deleteTask(${t.id})" title="Delete"><i class="ti ti-trash"></i></button></td>
+    </tr>`).join('');
+}
+ 
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+ 
+// ── GALLERY ──
+const SAMPLES=[
+  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=75',
+  'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=400&q=75',
+  'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&q=75',
+  'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=400&q=75',
+  'https://images.unsplash.com/photo-1523712999610-f77fbcfc3843?w=400&q=75',
+  'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=75',
+];
+ 
+function addGalleryImage(){
+  const inp=document.getElementById('galUrlInput');
+  const url=inp.value.trim();
+  if(!url)return;
+  images.push({id:imgId++,url,added:new Date().toLocaleDateString()});
+  localStorage.setItem('tf-images',JSON.stringify(images));
+  inp.value='';
+  renderGallery();
+}
+ 
+function loadSampleImages(){
+  SAMPLES.forEach(url=>images.push({id:imgId++,url,added:new Date().toLocaleDateString()}));
+  localStorage.setItem('tf-images',JSON.stringify(images));
+  renderGallery();
+}
+ 
+function removeImage(id){
+  images=images.filter(i=>i.id!==id);
+  localStorage.setItem('tf-images',JSON.stringify(images));
+  renderGallery();
+}
+ 
+function renderGallery(){
+  const grid=document.getElementById('galleryGrid');
+  const empty=document.getElementById('galEmpty');
+  if(!images.length){grid.innerHTML='';empty.style.display='block';return}
+  empty.style.display='none';
+  grid.innerHTML=images.map(img=>`
+    <div class="gal-card">
+      <img class="gal-img" src="${img.url}" alt="gallery" onerror="this.style.display='none';this.nextSibling.style.display='flex'"/>
+      <div class="gal-img-placeholder" style="display:none"><i class="ti ti-photo-off"></i></div>
+      <div class="gal-info">
+        <div class="gal-meta">
+          <span>${img.added}</span>
+          <button class="btn-icon" onclick="removeImage(${img.id})" style="padding:2px 4px"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+ 
+// ── PROFILE ──
+function saveProfile(){
+  const name=document.getElementById('profNameInput').value.trim();
+  const email=document.getElementById('profEmailInput').value.trim();
+  if(!name||!EMAIL_RE.test(email))return;
+  user.name=name;user.email=email;
+  user.initials=(name.split(' ').map(w=>w[0]).join('').slice(0,2)).toUpperCase();
+  localStorage.setItem('tf-user',JSON.stringify(user));
+  document.getElementById('sbAvatar').textContent=user.initials;
+  document.getElementById('sbName').textContent=user.name;
+  document.getElementById('profAvatar').textContent=user.initials;
+  document.getElementById('profName').textContent=user.name;
+  document.getElementById('profEmail').textContent=user.email;
+}
+ 
+// ── INIT ──
+const saved=JSON.parse(localStorage.getItem('tf-user')||'null');
+if(saved)enterApp(saved);
+ 
+// Enter key for auth
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  if(document.getElementById('signupForm').style.display!=='none')doSignup();
+  else if(document.getElementById('loginForm').style.display!=='none'&&document.getElementById('authScreen').style.display!=='none')doLogin();
+});
+</script>
+</body>
+</html>
